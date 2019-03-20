@@ -13,7 +13,7 @@
         tools:ignore="MissingConstraints">
         <TextView
             android:text="1"
-            android:textColor="#fff"
+            android:textColor="@color/colorWhite"
             android:textStyle="bold"
             android:textSize="30dp"
             android:gravity="center"

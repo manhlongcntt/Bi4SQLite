@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Bài4 SQLite</string>
+    <string name="app_name">SQLite</string>
+    <string name="Ban_xao">Bạn có muốn xoá không?</string>
+    <string name="Huỷ_Bỏ">Huỷ Bỏ</string>
+    <string name="Đồng_ý">Đồng ý</string>
+    <string name="save">save</string>
+    <string name="updata">updata</string>
 </resources>

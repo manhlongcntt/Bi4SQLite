@@ -1,5 +1,8 @@
 package com.example.bi4sqlite;
 
+import android.app.Dialog;
+import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,11 +19,18 @@ import com.example.bi4sqlite.model.Student;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private EditText edtName, edtNumber, edtAddress,edtEmail,edtId;
-    private Button   btnSave,btnUpdata;
+
+    private Button   btnSave;
     private ListView lvSV;
     private CustomAdapter customAdapter;
     private List<Student> studentList;
+    public static final  String ID ="ID";
+    public static final  String NAME ="NAME";
+    public static final  String NUMBER ="NUMBER";
+    public static final  String ADDRESS  ="ADDRESS";
+    public static final  String EMAIL ="EMAIL";
+    public static final int REQUEST_CODE  = 120;
+    public static final int REQUEST_CODE2 = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,89 +43,75 @@ public class MainActivity extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Student student = createStudent();
-                if (student != null) {
-                    dbManager.addStudent(student);
-                }
-                studentList.clear();
-                studentList.addAll(dbManager.getAllStudent());
-                setAdapter();
+                Intent intent = new Intent(MainActivity.this,addActivity.class);
+                intent.putExtra(ID,"");
+                startActivityForResult(intent,REQUEST_CODE);
+
+               // Student student = createStudent();
+              //  if (!student.getmName().isEmpty() && !student.getmEmail().isEmpty()) {
+              //      dbManager.addStudent(student);
+               //     studentList.clear();
+               //     studentList.addAll(dbManager.getAllStudent());
+               //     setAdapter();
+               // }else{
+               //     Toast.makeText(MainActivity.this, "Họ tên và email không được bỏ trống", Toast.LENGTH_SHORT).show();
+               // }
             }
         });
         lvSV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Student student = studentList.get(position);
-                edtId.setText(String.valueOf(student.getmID()));
-                edtName.setText(student.getmName());
-                edtNumber.setText(student.getmPhoneNumber());
-                edtAddress.setText(student.getmAddress());
-                edtEmail.setText(student.getmEmail());
-                btnSave.setEnabled(false);
-                btnUpdata.setEnabled(true);
+                Intent intent = new Intent(MainActivity.this,addActivity.class);
+                intent.putExtra(ID,String.valueOf(student.getmID()));
+                intent.putExtra(NAME,String.valueOf(student.getmName()));
+                intent.putExtra(ADDRESS,student.getmAddress().toString());
+                intent.putExtra(NUMBER,student.getmPhoneNumber().toString());
+                intent.putExtra(EMAIL,student.getmEmail().toString());
+                startActivityForResult(intent,REQUEST_CODE);
+
             }
         });
-        btnUpdata.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Student student = new Student();
-                student.setmID(Integer.parseInt(edtId.getText().toString()));
-                student.setmName(edtName.getText().toString());
-                student.setmPhoneNumber(edtNumber.getText().toString());
-                student.setmEmail(edtEmail.getText().toString());
-                student.setmAddress(edtAddress.getText().toString());
-                int ketQua = dbManager.upDataStudent(student);
-                if (ketQua > 0) {
-                    studentList.clear();
-                    studentList.addAll(dbManager.getAllStudent());
-                    if (customAdapter != null){
-                        customAdapter.notifyDataSetChanged();
-                    }
-                }
-                btnSave.setEnabled(true);
-                btnUpdata.setEnabled(false);
-            }
-        });
+
         lvSV.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Student student = studentList.get(position);
-                int KQ = dbManager.deleteStudent(student.getmID());
-                if (KQ > 0){
-                    Toast.makeText(MainActivity.this, "Dã xoá thành công", Toast.LENGTH_SHORT).show();
-                    studentList.clear();
-                    studentList.addAll(dbManager.getAllStudent());
-                    if (customAdapter != null){
-                        customAdapter.notifyDataSetChanged();
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                final Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setTitle("Thông báo");
+                dialog.setContentView(R.layout.show_dialog);
+                dialog.setCancelable(false);
+                Button btn_dong_y = (Button) dialog.findViewById(R.id.btn_dong_y);
+                Button btn_bo_qua = (Button) dialog.findViewById(R.id.btn_bo_qua);
+                btn_dong_y.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Student student = studentList.get(position);
+                        int KQ = dbManager.deleteStudent(student.getmID());
+                        if (KQ > 0){
+                            Toast.makeText(MainActivity.this, "Đã xoá thành công", Toast.LENGTH_SHORT).show();
+                            studentList.clear();
+                            studentList.addAll(dbManager.getAllStudent());
+                            if (customAdapter != null){
+                                customAdapter.notifyDataSetChanged();
+                            }
+                        }
+                        dialog.dismiss();
                     }
-                }
-                btnSave.setEnabled(true);
-                btnUpdata.setEnabled(false);
+                });
+                btn_bo_qua.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
                 return false;
             }
         });
     }
     private void iniWidget(){
-        edtName    = findViewById(R.id.edt_Name);
-        edtId      = findViewById(R.id.edt_Id);
-        edtNumber  = findViewById(R.id.edt_Number);
-        edtAddress = findViewById(R.id.edt_Address);
-        edtEmail   = findViewById(R.id.edt_Email);
         btnSave    = findViewById(R.id.btn_Save);
-        btnUpdata  = findViewById(R.id.btn_Updata);
         lvSV       = findViewById(R.id.lv_SV);
-    }
-    private void clickEvent(){
-
-    }
-    private Student createStudent(){
-        String name         = edtName.getText().toString();
-        String address      = String.valueOf(edtAddress.getText());
-        String phone        = edtNumber.getText()+"";
-        String email        = edtEmail.getText().toString();
-        Student student     = new Student(name,address,phone,email);
-        return student;
-
     }
 
     private void setAdapter(){
@@ -127,7 +123,23 @@ public class MainActivity extends AppCompatActivity {
             lvSV.setSelection(customAdapter.getCount()-1);
         }
     }
-    public void updataStudent(){
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        DBManager dbManager = new DBManager(this);
+        //requestCode trả về bằng hàm khai báo REQUEST_CODE trường hợp có nhiều REQUEST_CODE trả về cần phải kiểm tra
+        //resultCode giá trị từ bên ActivityOutput trả về với định nghĩa trước đó là RESULT_PIN = 20
+        if(requestCode == REQUEST_CODE ){
+            switch (resultCode){
+                case addActivity.RESULT_PIN:
+                    studentList.clear();
+                    studentList.addAll(dbManager.getAllStudent());
+                    setAdapter();
+                    break;
+                default:
+                    break;
+            }
+        }
     }
+
 }
